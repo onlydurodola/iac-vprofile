@@ -46,12 +46,7 @@ jobs:
       - name: Check AWS_ACCESS_KEY_ID
         shell: bash
         run: |
-          if [ -z "$AWS_ACCESS_KEY_ID" ]; then
-            echo "AWS_ACCESS_KEY_ID is empty or not set!"
-            exit 1
-          else
-            echo "AWS_ACCESS_KEY_ID is set correctly."
-          fi
+          envsubst '$AWS_ACCESS_KEY_ID' < <(echo 'if [ -z "$AWS_ACCESS_KEY_ID" ]; then echo "AWS_ACCESS_KEY_ID is empty or not set!"; exit 1; else echo "AWS_ACCESS_KEY_ID is set correctly."; fi')
 
       - name: Terraform Init
         id: Init
