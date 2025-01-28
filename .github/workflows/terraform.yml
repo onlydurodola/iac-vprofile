@@ -34,13 +34,23 @@ jobs:
       - name: Setup Terraform 
         uses: hashicorp/setup-terraform@v2
 
-      - name: Debug Environmrent Variables
+      - name: Debug Environment Variables
+        shell: bash
         run: |
           echo "AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID"
           echo "AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY"
           echo "BUCKET_TF_STATE: $BUCKET_TF_STATE"
           echo "AWS_REGION: $AWS_REGION"
 
+      - name: Check AWS_ACCESS_KEY_ID
+        shell: bash
+        run: |
+          if [ -z "$AWS_ACCESS_KEY_ID" ]; then
+            echo "AWS_ACCESS_KEY_ID is empty or not set!"
+            exit 1
+          else
+            echo "AWS_ACCESS_KEY_ID is set correctly."
+          fi
 
       - name: Terraform Init
         id: Init
@@ -62,4 +72,3 @@ jobs:
       - name: Terraform Plan status
         if: steps.plan.outcome == 'failure'
         run: exit 1
-        
