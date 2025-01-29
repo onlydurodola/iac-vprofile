@@ -12,6 +12,10 @@ on:
       - main
     paths:
       - terraform/**
+
+permissions:
+  id-token: write
+
 env:
   AWS_REGION: us-east-1  
   EKS_CLUSTER: vprofile-eks  
@@ -34,8 +38,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::182399687748:role/github-action-OICD
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Verify AWS Credentials
