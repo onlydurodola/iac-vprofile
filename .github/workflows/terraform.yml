@@ -22,7 +22,7 @@ env:
 
 jobs:
   terraform:
-    name: "Apply Terraform"
+    name: "Destroy Terraform"
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -66,10 +66,10 @@ jobs:
         if: steps.plan.outcome == 'failure'
         run: exit 1
 
-      - name: Terraform Apply
+      - name: Terraform Destroy
         id: apple
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -auto-approve -input=false -parallelism=1 planfile
+        run: terraform destroy -auto-approve -input=false -parallelism=1 planfile
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
