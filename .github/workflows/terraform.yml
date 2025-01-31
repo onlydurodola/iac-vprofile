@@ -1,13 +1,7 @@
-name: "Vprofile IaC"
+name: "Vprofile Terraform Destroy"
 
 on:
   push:
-    branches:
-      - main
-      - stage
-    paths:
-      - terraform/**
-  pull_request:
     branches:
       - main
     paths:
@@ -21,8 +15,8 @@ env:
   EKS_CLUSTER: vprofile-eks  
 
 jobs:
-  terraform:
-    name: "Apply Terraform"
+  terraform-destroy:
+    name: "Destroy Terraform"
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -48,40 +42,11 @@ jobs:
       - name: Terraform Init
         id: Init
         run: terraform init -backend-config="bucket=${{ secrets.BUCKET_TF_STATE }}"
-      
-      - name: Terraform Format
-        id: Format
-        run: terraform fmt -check
 
-      - name: Terraform Validate
-        id: Validate
-        run: terraform validate
+      - name: Terraform Plan Destroy
+        id: plan_destroy
+        run: terraform plan -destroy -no-color -input=false -out destroy-planfile
 
-      - name: Terraform Plan
-        id: plan
-        run: terraform plan -no-color -input=false -out planfile
-        continue-on-error: true
-
-      - name: Terraform Plan status
-        if: steps.plan.outcome == 'failure'
-        run: exit 1
-
-      - name: Terraform Apply
-        id: apple
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -auto-approve -input=false -parallelism=1 planfile
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::182399687748:role/github-action-OICD
-          aws-region: ${{ env.AWS_REGION }}
-    
-      - name: Get Kube config file
-        id: getconfig
-        if: steps.apple.outcome == 'success'
-        run: aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.EKS_CLUSTER }} 
-
-      - name: Install Ingress controller
-        if: steps.apple.outcome == 'success' && steps.getconfig.outcome == 'success'
-        run: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.1.3/deploy/static/provider/aws/deploy.yaml
+      - name: Terraform Destroy
+        if: github.ref == 'refs/heads/destroy' && github.event_name == 'push'
+        run: terraform apply -destroy -auto-approve -input=false destroy-planfile
